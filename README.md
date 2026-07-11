@@ -50,7 +50,19 @@
 python main.py
 ```
 
-或直接运行打包好的 `SellingKidney.exe`，无需安装额外依赖。
+或自行打包为 exe：
+
+```bash
+# 1. 安装 PyInstaller
+pip install pyinstaller
+
+# 2. 在项目目录下执行打包（--onefile 生成单个 exe）
+pyinstaller --onefile --console --name SellingKidney main.py
+
+# 3. 打包完成后，在 dist/ 目录下找到 SellingKidney.exe
+```
+
+打包后将 `SellingKidney.exe` 复制到任意文件夹即可运行，历史记录会自动保存在 exe 同级目录的 `history/` 文件夹中。
 
 ## 文件结构
 
