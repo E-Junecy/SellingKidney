@@ -85,7 +85,6 @@ SellingKidney/
 ├── ui.py         # 战斗 UI、结果展示
 ├── console.py    # 控制台底层操作（光标、绘图、按键）
 ├── history.py    # 对战历史记录管理
-├── minimax.py    # Minimax 搜索（预留，未集成）
 ├── readme.md     # 本文件
 └── history/      # 对战历史记录（自动创建）
 ```

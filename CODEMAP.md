@@ -14,8 +14,6 @@ main.py ──→ game.py ──→ ai.py ──→ moves.py
                   ├──→ history.py
                   ├──→ ui.py
                   └──→ console.py
-
-minimax.py (预留，当前未被任何文件 import)
 ```
 
 ---
@@ -115,7 +113,7 @@ minimax.py (预留，当前未被任何文件 import)
 **ai_think() 详细逻辑：**
 - **difficulty=1（简单）**：第35-36行，直接 random.choice，完全随机
 - **difficulty=2（普通）**：lookback=3，分析最近3回合
-- **difficulty=3（困难）**：lookback=6，分析最近6回合。注意：**未使用 minimax**
+- **difficulty=3（困难）**：lookback=6，分析最近6回合
 
 **评分系统（55-161行）：**
 为每个可用招式计算 score，最后用 Softmax 选一个：
@@ -133,26 +131,6 @@ minimax.py (预留，当前未被任何文件 import)
 - 改某个招式的 AI 偏好权重：改对应 score += 的值
 - 新增招式 AI 逻辑：在 scores 字典初始化后加对应 elif 分支
 - 改采样随机性：改 _weighted_pick 的 temperature 参数（默认2.0）
-- 如果要集成 minimax：需要在 ai_think 中 difficulty==3 时调用 minimax.find_best_move()
-
----
-
-## minimax.py — Minimax 搜索（预留，未集成）
-
-| 行号 | 内容 | 说明 |
-|------|------|------|
-| 4-37 | `class GameState` | 轻量游戏状态，用 __slots__ 优化内存。完整复制当前战斗状态 |
-| 40-49 | `get_moves(qi, reflect_cd, reflect_disabled)` | 类似 fighter.py 的 get_available_moves，但不依赖 Fighter 对象 |
-| 52-154 | `simulate(state, ai_move, player_move)` | 模拟一回合，返回新 GameState。逻辑与 game.py resolve() 基本一致 |
-| 157-202 | `evaluate(state)` | 评估函数：返回分数（正=AI优势）。考虑血量差、气量差、护盾差、反弹状态、酒增益、玩家倾向 |
-| 205-280 | `minimax(state, depth, alpha, beta, is_ai_turn)` | Alpha-Beta 剪枝搜索。AI层取max，玩家层取avg（按倾向加权） |
-| 283-285 | `find_best_move(state, depth)` | 入口：调用 minimax 返回最优招式 |
-| 288-320 | `state_from_fighter(ai, player, player_tendencies)` | 将 Fighter 对象转为 GameState |
-
-**修改指南：**
-- 改评估权重：改 evaluate() 的各项系数
-- 改搜索深度：改 find_best_move 的 depth 参数（默认3）
-- 集成到 ai.py：在 ai_think 中 difficulty==3 时调用 `from minimax import state_from_fighter, find_best_move`，将 state 传入
 
 ---
 
@@ -233,10 +211,8 @@ minimax.py (预留，当前未被任何文件 import)
 
 1. **仅 Windows**：console.py 依赖 msvcrt 和 kernel32，不兼容 Linux/Mac
 2. **控制台尺寸固定**：COLS=120 ROWS=30，所有 UI 坐标硬编码，改尺寸需要全局调整
-3. **minimax.py 未集成**：hard 难度实际只比 normal 多看了3回合历史，minimax 是预留代码
-4. **酒增益双重作用**：伤害+1（damage_bonus）+ 对攻时等效气量+1.2（JIU_WEIGHT），两者独立
+3. **酒增益双重作用**：伤害+1（damage_bonus）+ 对攻时等效气量+1.2（JIU_WEIGHT），两者独立
 5. **反弹冷却机制**：use_move 设 cooldown=2 然后立即 -1，所以实际冷却1回合。get_available_moves 检查 cooldown > 0
 6. **防御判定用 <**：attack 的 qi_cost 必须 < block_qi 才被挡住（等于时攻击穿透）
-7. **resolve() 和 minimax simulate() 是重复实现**：改回合结算规则时两处都要改
-8. **buff 先结算再 resolve**：battle() 中 apply_buff 在 resolve 之前调用，所以酒的 damage_bonus 在当回合 resolve 时就生效
-9. **招式名含 Unicode 引号**：`"嘣"` `"劈"` `"砍"` `"酒"` 用的是中文全角引号 `\u201c\u201d`
+7. **buff 先结算再 resolve**：battle() 中 apply_buff 在 resolve 之前调用，所以酒的 damage_bonus 在当回合 resolve 时就生效
+8. **招式名含 Unicode 引号**：`"嘣"` `"劈"` `"砍"` `"酒"` 用的是中文全角引号 `\u201c\u201d`
