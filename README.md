@@ -22,8 +22,8 @@
 | 嘣 | 攻击 | 1 | 1 点伤害 |
 | 劈 | 攻击 | 2 | 1 点伤害 |
 | 砍 | 攻击 | 3 | 1.5 点伤害 |
-| 防御 | 防御 | 0 | 抵消 ≤3 气的攻击 |
-| 超级防 | 防御 | 1 | 抵消 ≤6 气的攻击 |
+| 防御 | 防御 | 0 | 抵消 <3 气的攻击 |
+| 超级防 | 防御 | 1 | 抵消 <6 气的攻击 |
 | 反弹 | 特殊 | 0 | 反弹伤害，冷却 1 回合 |
 | 破反 | 特殊 | 0 | 永久禁用敌方反弹 |
 | 叠盾 | 增益 | 1 | 护盾+1 |
@@ -44,25 +44,17 @@
 | 普通 | 分析最近 3 次历史，根据玩家倾向加权选招 |
 | 困难 | 分析最近 6 次历史，更准确判断玩家倾向 |
 
-## 运行
+## 下载
+
+前往 [Releases](https://github.com/E-Junecy/SellingKidney/releases) 下载最新版 `SellingKidney.exe`，双击即可运行，无需安装 Python。
+
+历史记录会自动保存在 exe 同级目录的 `history/` 文件夹中。
+
+## 从源码运行
 
 ```bash
 python main.py
 ```
-
-或自行打包为 exe：
-
-```bash
-# 1. 安装 PyInstaller
-pip install pyinstaller
-
-# 2. 在项目目录下执行打包（--onefile 生成单个 exe）
-pyinstaller --onefile --console --name SellingKidney main.py
-
-# 3. 打包完成后，在 dist/ 目录下找到 SellingKidney.exe
-```
-
-打包后将 `SellingKidney.exe` 复制到任意文件夹即可运行，历史记录会自动保存在 exe 同级目录的 `history/` 文件夹中。
 
 ## 文件结构
 
@@ -72,7 +64,6 @@ SellingKidney/
 ├── game.py        # 对战逻辑
 ├── fighter.py     # 角色类
 ├── ai.py          # AI 策略
-├── minimax.py     # minimax 算法
 ├── moves.py       # 招式数据
 ├── ui.py          # 界面显示
 ├── history.py     # 历史记录管理
