@@ -96,7 +96,7 @@ def select_difficulty():
     while True:
         cls()
         for i, line in enumerate(art):
-            gotoxy((COLS - 50) // 2, 6 + i)
+            gotoxy((COLS - 50) // 2 + 5, 6 + i)
             print(f"{DIM}{line}{R}")
 
         gotoxy((COLS - 20) // 2, 1)
