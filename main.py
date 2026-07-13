@@ -96,13 +96,13 @@ def select_difficulty():
     while True:
         cls()
         for i, line in enumerate(art):
-            gotoxy((COLS - 50) // 2, 2 + i)
+            gotoxy((COLS - 50) // 2, 6 + i)
             print(f"{DIM}{line}{R}")
 
         gotoxy((COLS - 20) // 2, 1)
         print(f"{BLU}═══ 选择难度 ═══{R}")
 
-        opt_y = 14
+        opt_y = 22
         box_w = 34
         gap = 2
         total_w = 3 * box_w + 2 * gap
