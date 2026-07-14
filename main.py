@@ -53,6 +53,7 @@ def main_menu():
                 if diff is not None:
                     battle(diff)
                     post_battle(diff)
+                selected = 0
             elif selected == 1:
                 show_history()
             elif selected == 2:
