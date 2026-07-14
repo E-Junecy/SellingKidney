@@ -94,7 +94,7 @@ def get_player_move(player, ai):
         info = SKILLS[name]
         cost = info["qi_cost"]
         cost_str = f" ({cost}气)" if cost > 0 else ""
-        items.append(f"{name}{cost_str}")
+        items.append((name, cost_str))
         from ui import get_move_desc
         descs.append(get_move_desc(name))
 
@@ -112,17 +112,17 @@ def get_player_move(player, ai):
         visible = items[scroll:scroll + max_visible]
         visible_descs = descs[scroll:scroll + max_visible]
 
-        for i, (item, desc) in enumerate(zip(visible, visible_descs)):
+        for i, ((name, cost_str), desc) in enumerate(zip(visible, visible_descs)):
             y = start_y + i
             idx = scroll + i
             if idx == sel:
                 gotoxy(15, y)
-                print(f"{GRN}>>> {item}{R}")
+                print(f"{GRN}>>>{name}<<<{R}{cost_str}")
                 gotoxy(65, y)
                 print(f"{desc}")
             else:
                 gotoxy(15, y)
-                print(f"    {item}")
+                print(f"    {name}{cost_str}")
                 gotoxy(65, y)
                 print(f"{DIM}{desc}{R}")
 
