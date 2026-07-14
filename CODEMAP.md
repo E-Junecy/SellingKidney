@@ -78,11 +78,9 @@ main.py ──→ game.py ──→ ai.py ──→ moves.py
 | 119-121 | `draw_stats_left(x, y, label, hp, max_hp, shield, qi, tags)` | 左对齐状态栏（AI 用） |
 | 124-129 | `draw_stats_right(x, y, label, hp, max_hp, shield, qi, tags)` | 右对齐状态栏（玩家用） |
 | 132-140 | `get_stats_tags(fighter)` | 生成状态标签：[反弹冷却] / [反弹失效] / [伤害+1] |
-| 143-145 | `draw_ai_stats(y=1)` | 清除 AI 状态栏区域（未使用） |
-| 148-150 | `draw_player_stats(y=28)` | 清除玩家状态栏区域（未使用） |
-| 153-170 | `get_key()` | 读取按键，返回 "up"/"down"/"left"/"right"/"enter"/"esc"/字符 |
-| 173-176 | `pause_at(x, y, msg)` | 在指定位置显示提示文字并等待按键 |
-| 179-180 | `strip_ansi(text)` | 去除 ANSI 颜色码，用于计算可见文本长度 |
+| 143-150 | `get_key()` | 读取按键，返回 "up"/"down"/"left"/"right"/"enter"/"esc"/字符 |
+| 153-163 | `pause_at(x, y, msg)` | 在指定位置显示提示文字并等待按键 |
+| 166-167 | `strip_ansi(text)` | 去除 ANSI 颜色码，用于计算可见文本长度 |
 
 **修改指南：**
 - 改窗口尺寸：改 COLS/ROWS（第43-44行），同时需要改 init_console() 的缓冲区设置

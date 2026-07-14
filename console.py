@@ -140,16 +140,6 @@ def get_stats_tags(fighter):
     return "".join(tags)
 
 
-def draw_ai_stats(y=1):
-    clear_line(y)
-    clear_line(y + 1)
-
-
-def draw_player_stats(y=28):
-    clear_line(y)
-    clear_line(y + 1)
-
-
 def get_key():
     ch = msvcrt.getch()
     if ch in (b'\x00', b'\xe0'):
