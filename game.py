@@ -4,7 +4,7 @@ from ai import ai_think
 from history import save_history
 from ui import show_result
 from console import (
-    cls, gotoxy, get_key, draw_rect,
+    cls, gotoxy, clear_line, get_key, draw_rect,
     draw_hp_bar, draw_stats_left, draw_stats_right, get_stats_tags,
     strip_ansi, COLS, ROWS, R, GRN, BLU, RED, DIM, MAG
 )
