@@ -6,7 +6,7 @@ from ui import show_result
 from console import (
     cls, gotoxy, clear_line, get_key, draw_rect,
     draw_hp_bar, draw_stats_left, draw_stats_right, get_stats_tags,
-    strip_ansi, COLS, ROWS, R, GRN, BLU, RED, DIM, MAG
+    strip_ansi, COLS, ROWS, R, GRN, YLW, BLU, RED, DIM, MAG
 )
 import time
 import msvcrt
@@ -122,7 +122,7 @@ def get_player_move(player, ai):
                 print(f"{desc}")
             else:
                 gotoxy(15, y)
-                print(f"    {name}{cost_str}")
+                print(f"   {name}{cost_str}")
                 gotoxy(65, y)
                 print(f"{DIM}{desc}{R}")
 
@@ -150,7 +150,29 @@ def get_player_move(player, ai):
         elif key == "enter":
             return available[sel]
         elif key == "esc":
-            return available[0]
+            quit_sel = 0
+            while True:
+                draw_rect(40, 11, 80, 17)
+                gotoxy(52, 12)
+                print(f"{YLW}确认退出本局？{R}")
+                for i, opt in enumerate(["是", "否"]):
+                    x = 50 + i * 12
+                    gotoxy(x, 14)
+                    if i == quit_sel:
+                        print(f"{GRN}[{opt}]{R}")
+                    else:
+                        print(f" {opt} ")
+                gotoxy(47, 16)
+                print(f"{DIM}← → 切换  Enter 确认{R}")
+                qkey = get_key()
+                if qkey == "left":
+                    quit_sel = (quit_sel - 1) % 2
+                elif qkey == "right":
+                    quit_sel = (quit_sel + 1) % 2
+                elif qkey == "enter":
+                    if quit_sel == 0:
+                        return None
+                    break
 
 
 def animate_round(p_move, a_move, player, ai, p_hp_change, a_hp_change):
@@ -227,6 +249,8 @@ def battle(difficulty):
     while player.is_alive() and ai.is_alive():
         round_num += 1
         p_move = get_player_move(player, ai)
+        if p_move is None:
+            break
         a_move = ai_think(ai, player, history, difficulty)
 
         p_type = SKILLS[p_move]["type"]
@@ -268,6 +292,9 @@ def battle(difficulty):
             "ai_qi": ai.qi,
             "ai_shield": ai.shield,
         })
+
+    if p_move is None:
+        return False
 
     player_won = ai.is_alive() == False and player.is_alive()
     filepath = save_history(player_won, history)

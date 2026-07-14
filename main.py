@@ -1,9 +1,31 @@
+import random
+import time
+import sys
 from game import battle
 from history import show_history, clear_history
 from console import (
     init_console, cls, gotoxy, draw_rect,
     get_key, COLS, ROWS, R, GRN, BLU, DIM
 )
+
+
+FAREWELL = [
+    "不要你离开，距离隔不开",
+    "不要你离开，回忆划不开",
+    "于是转身向山里走去",
+    "于是转身向大海走去",
+    "笑我放你走了走了走了走了",
+    "难过时你走了走了走了走了",
+]
+
+
+def farewell_exit():
+    cls()
+    msg = random.choice(FAREWELL)
+    gotoxy((COLS - len(msg) * 2) // 2, ROWS // 2)
+    print(f"{DIM}{msg}{R}", end="", flush=True)
+    time.sleep(1)
+    sys.exit()
 
 
 def main_menu():
@@ -38,7 +60,7 @@ def main_menu():
                 print(f"    {opt}")
 
         gotoxy(1, ROWS - 1)
-        print(f"{DIM}v1.0 beta{R}")
+        print(f"{DIM}v1.1 beta{R}")
         gotoxy(COLS - 30, ROWS - 1)
         print(f"{DIM}↑↓ 移动  Enter 确认  Esc 退出{R}")
 
@@ -61,15 +83,11 @@ def main_menu():
                 if confirm:
                     clear_history()
             elif selected == 3:
-                cls()
-                gotoxy((COLS - 6) // 2, ROWS // 2)
-                print("再见！")
-                break
+                farewell_exit()
+                return
         elif key == "esc":
-            cls()
-            gotoxy((COLS - 6) // 2, ROWS // 2)
-            print("再见！")
-            break
+            farewell_exit()
+            return
 
 def select_difficulty():
     global selected
