@@ -4,9 +4,9 @@ from ai import ai_think
 from history import save_history
 from ui import show_result
 from console import (
-    cls, gotoxy, write_at, clear_line, get_key, pause_at, draw_rect,
+    cls, gotoxy, get_key, draw_rect,
     draw_hp_bar, draw_stats_left, draw_stats_right, get_stats_tags,
-    strip_ansi, COLS, ROWS, R, GRN, YLW, BLU, RED, DIM, WHT
+    strip_ansi, COLS, ROWS, R, GRN, BLU, RED, DIM, MAG
 )
 import time
 import msvcrt
@@ -272,5 +272,4 @@ def battle(difficulty):
     player_won = ai.is_alive() == False and player.is_alive()
     filepath = save_history(player_won, history)
     show_result(player_won, filepath)
-    pause_at(1, ROWS - 1)
     return player_won

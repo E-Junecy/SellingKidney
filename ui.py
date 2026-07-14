@@ -1,8 +1,7 @@
-from moves import SKILLS, SKILL_TYPES
-from fighter import get_available_moves
+from moves import SKILLS
 from console import (
-    cls, gotoxy, write_at, clear_line, draw_rect, draw_hp_bar,
-    get_stats_tags, pause_at, COLS, ROWS, R, GRN, YLW, BLU, RED, DIM, WHT, CYN, MAG
+    cls, gotoxy, draw_rect,
+    COLS, ROWS, R, GRN, YLW, BLU, RED, DIM, CYN, MAG
 )
 import msvcrt
 

@@ -1,7 +1,7 @@
 from datetime import datetime
 from pathlib import Path
 import sys
-from console import cls, gotoxy, pause_at, strip_ansi, COLS, ROWS, R, DIM
+from console import cls, gotoxy, pause_at, COLS, ROWS, R, DIM
 
 if getattr(sys, 'frozen', False):
     _BASE = Path(sys.executable).parent

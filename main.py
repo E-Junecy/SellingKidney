@@ -1,8 +1,8 @@
 from game import battle
 from history import show_history, clear_history
 from console import (
-    init_console, cls, gotoxy, write_at, clear_line, draw_rect,
-    get_key, pause_at, COLS, ROWS, R, GRN, YLW, BLU, RED, DIM, WHT
+    init_console, cls, gotoxy, draw_rect,
+    get_key, COLS, ROWS, R, GRN, BLU, DIM
 )
 
 
