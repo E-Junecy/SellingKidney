@@ -30,7 +30,7 @@ main.py ──→ game.py ──→ ai.py ──→ moves.py
 - `qi_cost`: 气量消耗（int）
 - `damage`: 伤害值（仅 attack 类型，float）
 - `block_qi`: 防御阈值（仅 defend 类型，int，挡住 qi_cost < block_qi 的攻击）
-- `effect`: buff 的具体效果 "qi" / "heal" / "shield" / "damage_boost"
+- `effect`: buff 的具体效果 "qi" / "heal" / "shield" / "damage_boost" / "break_reflect"
 - `value`: buff 的数值
 
 **修改指南：**
@@ -61,44 +61,34 @@ main.py ──→ game.py ──→ ai.py ──→ moves.py
 
 ---
 
-## game.py — 战斗核心逻辑
+## console.py — 控制台底层操作（Windows 专用）
 
 | 行号 | 内容 | 说明 |
 |------|------|------|
-| 15 | `JIU_WEIGHT = 1.2` | 酒增益在对攻时的等效气量加成 |
-| 18-65 | `resolve(p_move, a_move, p_bonus, a_bonus)` | **核心回合结算函数**。返回 (p_dmg, a_dmg) 即双方受到的伤害。处理所有攻击对攻/攻击vs防御/攻击vs反弹/攻击vs特殊 的判定 |
-| 68-72 | `handle_reflect(p_move, a_move, player, ai)` | 破反 vs 反弹的特殊处理：成功时设对方 reflect_disabled=True |
-| 75-86 | `draw_battle_ui(player, ai, title)` | 绘制战斗界面框架（双方状态条 + 可选标题） |
-| 89-153 | `get_player_move(player, ai)` | 招式选择菜单。支持滚动（max_visible=17）。返回选中的招式名 |
-| 156-208 | `animate_round(...)` | 回合动画：血条平滑变化 + 结果文字。用 time.sleep 做动画帧 |
-| 211-276 | `battle(difficulty)` | **战斗主循环**。每回合：玩家选招 → AI出招 → 扣气/加buff → handle_reflect → resolve结算 → 扣血/清增益 → 动画 → 记录历史。循环直到一方死亡。最后保存历史并显示结果 |
-
-**resolve() 判定逻辑详解（18-65行）：**
-1. 双方都是 attack：等效气量(实际气量+酒加成)高者胜，相同则抵消。胜者伤害 = 基础伤害 + 酒增益(+1)
-2. 一方 attack 一方 defend：attack 的 qi_cost < defend 的 block_qi 时被挡住
-3. 一方 attack 一方 reflect(反弹)：攻击方伤害反弹给攻击方自己（即攻击方受伤）
-4. 一方 attack 一方 special(破反)：攻击直接命中，破反不影响攻击
-5. 以上都不满足（都是非攻击招式）：无事发生
-
-**battle() 每回合执行顺序（227-270行）：**
-1. get_player_move → ai_think 获取双方招式
-2. use_move → 扣气 + 反弹冷却
-3. apply_buff → buff 类招式生效
-4. handle_reflect → 破反判定
-5. resolve → 伤害计算
-6. take_damage → 实际扣血
-7. 清除 damage_bonus（攻击招式用完就消失）
-8. animate_round → 动画显示
-9. 追加到 history
+| 9-17 | 颜色常量 | R/RED/GRN/YLW/BLU/MAG/CYN/WHT/DIM，ANSI 转义码 |
+| 20-40 | ctypes 结构体 | COORD / SMALL_RECT / CONSOLE_CURSOR_INFO / CONSOLE_SCREEN_BUFFER_INFO |
+| 43-44 | `COLS=120, ROWS=30` | 控制台窗口尺寸常量，影响所有 UI 布局 |
+| 47-68 | `init_console()` | 设置 UTF-8 编码、窗口大小、启用 VT100、隐藏光标 |
+| 71-72 | `cls()` | 清屏 |
+| 75-78 | `gotoxy(x, y)` | 移动光标到指定坐标 |
+| 81-83 | `write_at(x, y, text)` | 在指定位置打印 |
+| 86-88 | `clear_line(y, width=COLS)` | 清空一行（用空格覆盖） |
+| 91-98 | `draw_rect(x1, y1, x2, y2)` | 画矩形边框（Unicode box drawing） |
+| 101-116 | `draw_hp_bar(current, maximum, shield, length)` | 生成血条字符串：彩色方块 + 护盾标记 + 数值 |
+| 119-121 | `draw_stats_left(x, y, label, hp, max_hp, shield, qi, tags)` | 左对齐状态栏（AI 用） |
+| 124-129 | `draw_stats_right(x, y, label, hp, max_hp, shield, qi, tags)` | 右对齐状态栏（玩家用） |
+| 132-140 | `get_stats_tags(fighter)` | 生成状态标签：[反弹冷却] / [反弹失效] / [伤害+1] |
+| 143-145 | `draw_ai_stats(y=1)` | 清除 AI 状态栏区域（未使用） |
+| 148-150 | `draw_player_stats(y=28)` | 清除玩家状态栏区域（未使用） |
+| 153-170 | `get_key()` | 读取按键，返回 "up"/"down"/"left"/"right"/"enter"/"esc"/字符 |
+| 173-176 | `pause_at(x, y, msg)` | 在指定位置显示提示文字并等待按键 |
+| 179-180 | `strip_ansi(text)` | 去除 ANSI 颜色码，用于计算可见文本长度 |
 
 **修改指南：**
-- 改对攻判定规则：改 resolve() 22-33行
-- 改防御判定：改 resolve() 35-43行（注意 block_qi 用的是 `<` 不是 `<=`）
-- 改反弹逻辑：改 resolve() 45-51行 + handle_reflect()
-- 改每回合执行顺序：改 battle() 235-258行
-- 改战斗 UI 布局：改 draw_battle_ui() + animate_round()
-- 改动画速度：改 animate_round() 的 time.sleep 参数
-- 改招式选择菜单：改 get_player_move()
+- 改窗口尺寸：改 COLS/ROWS（第43-44行），同时需要改 init_console() 的缓冲区设置
+- 改颜色方案：改第9-17行的 ANSI 码
+- 改按键绑定：改 get_key() 返回值映射
+- 改血条样式：改 draw_hp_bar() 的字符和逻辑
 
 ---
 
@@ -134,31 +124,44 @@ main.py ──→ game.py ──→ ai.py ──→ moves.py
 
 ---
 
-## console.py — 控制台底层操作（Windows 专用）
+## game.py — 战斗核心逻辑
 
 | 行号 | 内容 | 说明 |
 |------|------|------|
-| 9-17 | 颜色常量 | R/RED/GRN/YLW/BLU/MAG/CYN/WHT/DIM，ANSI 转义码 |
-| 43-44 | `COLS=120, ROWS=30` | 控制台窗口尺寸常量，影响所有 UI 布局 |
-| 47-68 | `init_console()` | 设置 UTF-8 编码、窗口大小、启用 VT100、隐藏光标 |
-| 71-72 | `cls()` | 清屏 |
-| 75-78 | `gotoxy(x, y)` | 移动光标到指定坐标 |
-| 81-83 | `write_at(x, y, text)` | 在指定位置打印 |
-| 86-88 | `clear_line(y)` | 清空一行 |
-| 91-98 | `draw_rect(x1, y1, x2, y2)` | 画矩形边框（Unicode box drawing） |
-| 101-116 | `draw_hp_bar(...)` | 生成血条字符串：彩色方块 + 护盾标记 + 数值 |
-| 119-121 | `draw_stats_left(...)` | 左对齐状态栏（AI 用） |
-| 124-129 | `draw_stats_right(...)` | 右对齐状态栏（玩家用） |
-| 132-140 | `get_stats_tags(fighter)` | 生成状态标签：[反弹冷却] / [反弹失效] / [伤害+1] |
-| 153-170 | `get_key()` | 读取按键，返回 "up"/"down"/"left"/"right"/"enter"/"esc"/字符 |
-| 173-176 | `pause_at(x, y)` | 在指定位置显示"按任意键"并等待 |
-| 179-180 | `strip_ansi(text)` | 去除 ANSI 颜色码，用于计算可见文本长度 |
+| 15 | `JIU_WEIGHT = 1.2` | 酒增益在对攻时的等效气量加成 |
+| 18-65 | `resolve(p_move, a_move, p_bonus, a_bonus)` | **核心回合结算函数**。返回 (p_dmg, a_dmg) 即双方受到的伤害 |
+| 68-72 | `handle_reflect(p_move, a_move, player, ai)` | 破反 vs 反弹的特殊处理：成功时设对方 reflect_disabled=True |
+| 75-87 | `draw_battle_ui(player, ai, title)` | 绘制战斗界面框架（双方状态条 + 可选标题） |
+| 89-153 | `get_player_move(player, ai)` | 招式选择菜单。支持滚动（max_visible=17）。返回选中的招式名 |
+| 156-208 | `animate_round(...)` | 回合动画：血条平滑变化 + 结果文字。用 time.sleep 做动画帧 |
+| 211-275 | `battle(difficulty)` | **战斗主循环**。每回合：玩家选招 → AI出招 → 扣气/加buff → handle_reflect → resolve结算 → 扣血/清增益 → 动画 → 记录历史。循环直到一方死亡 |
+
+**resolve() 判定逻辑详解（18-65行）：**
+1. 双方都是 attack：等效气量(实际气量+酒加成)高者胜，相同则抵消。胜者伤害 = 基础伤害 + 酒增益(+1)
+2. 一方 attack 一方 defend：attack 的 qi_cost < defend 的 block_qi 时被挡住
+3. 一方 attack 一方 reflect(反弹)：攻击方伤害反弹给攻击方自己（即攻击方受伤）
+4. 一方 attack 一方 special(破反)：攻击直接命中，破反不影响攻击
+5. 以上都不满足（都是非攻击招式）：无事发生
+
+**battle() 每回合执行顺序（227-270行）：**
+1. get_player_move → ai_think 获取双方招式
+2. use_move → 扣气 + 反弹冷却
+3. apply_buff → buff 类招式生效
+4. handle_reflect → 破反判定
+5. resolve → 伤害计算
+6. take_damage → 实际扣血
+7. 清除 damage_bonus（攻击招式用完就消失）
+8. animate_round → 动画显示
+9. 追加到 history
 
 **修改指南：**
-- 改窗口尺寸：改 COLS/ROWS（第43-44行），同时需要改 init_console() 的缓冲区设置
-- 改颜色方案：改第9-17行的 ANSI 码
-- 改按键绑定：改 get_key() 返回值映射
-- 改血条样式：改 draw_hp_bar() 的字符和逻辑
+- 改对攻判定规则：改 resolve() 22-33行
+- 改防御判定：改 resolve() 35-43行（注意 block_qi 用的是 `<` 不是 `<=`）
+- 改反弹逻辑：改 resolve() 45-51行 + handle_reflect()
+- 改每回合执行顺序：改 battle() 235-258行
+- 改战斗 UI 布局：改 draw_battle_ui() + animate_round()
+- 改动画速度：改 animate_round() 的 time.sleep 参数
+- 改招式选择菜单：改 get_player_move()
 
 ---
 
@@ -166,8 +169,8 @@ main.py ──→ game.py ──→ ai.py ──→ moves.py
 
 | 行号 | 内容 | 说明 |
 |------|------|------|
-| 10-29 | `get_move_desc(name)` | 返回招式的彩色描述文字（供招式选择菜单显示） |
-| 32-49 | `show_result(player_won, filepath)` | 战斗结束结果画面：显示输赢 + 历史保存提示 |
+| 9-28 | `get_move_desc(name)` | 返回招式的彩色描述文字（供招式选择菜单显示） |
+| 31-48 | `show_result(player_won, filepath)` | 战斗结束结果画面：显示输赢 + 历史保存提示，等待按键后返回 |
 
 **修改指南：**
 - 改招式描述文字：改 get_move_desc() 对应分支
@@ -195,10 +198,10 @@ main.py ──→ game.py ──→ ai.py ──→ moves.py
 
 | 行号 | 内容 | 说明 |
 |------|------|------|
-| 9-71 | `main_menu()` | 主菜单循环：开始游戏/查看历史/清除历史/退出 |
-| 73-132 | `select_difficulty()` | 难度选择界面（简单/普通/困难），含 ASCII art |
-| 135-166 | `post_battle(diff)` | 战后菜单：再来一局/回到主菜单 |
-| 169-196 | `confirm_dialog(msg)` | 确认弹窗（是/否） |
+| 9-72 | `main_menu()` | 主菜单循环：开始游戏/查看历史/清除历史/退出。使用全局 `selected` 跟踪光标位置 |
+| 74-133 | `select_difficulty()` | 难度选择界面（简单/普通/困难），含 ASCII art。复用全局 `selected` |
+| 136-167 | `post_battle(diff)` | 战后菜单：再来一局/回到主菜单。使用局部变量 `sel` |
+| 170-197 | `confirm_dialog(msg)` | 确认弹窗（是/否） |
 
 **修改指南：**
 - 改菜单选项：改 main_menu() 的 options 列表
@@ -212,7 +215,8 @@ main.py ──→ game.py ──→ ai.py ──→ moves.py
 1. **仅 Windows**：console.py 依赖 msvcrt 和 kernel32，不兼容 Linux/Mac
 2. **控制台尺寸固定**：COLS=120 ROWS=30，所有 UI 坐标硬编码，改尺寸需要全局调整
 3. **酒增益双重作用**：伤害+1（damage_bonus）+ 对攻时等效气量+1.2（JIU_WEIGHT），两者独立
-5. **反弹冷却机制**：use_move 设 cooldown=2 然后立即 -1，所以实际冷却1回合。get_available_moves 检查 cooldown > 0
-6. **防御判定用 <**：attack 的 qi_cost 必须 < block_qi 才被挡住（等于时攻击穿透）
-7. **buff 先结算再 resolve**：battle() 中 apply_buff 在 resolve 之前调用，所以酒的 damage_bonus 在当回合 resolve 时就生效
-8. **招式名含 Unicode 引号**：`"嘣"` `"劈"` `"砍"` `"酒"` 用的是中文全角引号 `\u201c\u201d`
+4. **反弹冷却机制**：use_move 设 cooldown=2 然后立即 -1，所以实际冷却1回合。get_available_moves 检查 cooldown > 0
+5. **防御判定用 <**：attack 的 qi_cost 必须 < block_qi 才被挡住（等于时攻击穿透）
+6. **buff 先结算再 resolve**：battle() 中 apply_buff 在 resolve 之前调用，所以酒的 damage_bonus 在当回合 resolve 时就生效
+7. **招式名含 Unicode 引号**：`"嘣"` `"劈"` `"砍"` `"酒"` 用的是中文全角引号 `\u201c\u201d`
+8. **全局变量 selected**：main_menu 和 select_difficulty 共用全局 `selected`，post_battle 返回后需重置为 0
